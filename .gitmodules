@@ -91,6 +91,6 @@
 [submodule "plugins/Easy-Restart-Reload-for-Steam"]
 	path = plugins/Easy-Restart-Reload-for-Steam
 	url = https://github.com/SaiyajinK/Easy-Restart-Reload-for-Steam
-[submodule "plugins/protondb-library"]
+[submodule "plugins/protondb-library-badges"]
 	path = plugins/protondb-library-badges
 	url = https://github.com/Yohlo/protondb-library-badges
