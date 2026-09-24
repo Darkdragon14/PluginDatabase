@@ -34,7 +34,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             number="$INPUT_PR"
           else
-            number=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '.[0].number // empty')
+            number=$(gh api "search/issues?q=repo:$REPO+$SHA" --jq '.items[0].number // empty')
           fi
 
           if [[ -z "$number" ]]; then
