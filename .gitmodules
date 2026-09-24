@@ -94,3 +94,6 @@
 [submodule "plugins/protondb-library-badges"]
 	path = plugins/protondb-library-badges
 	url = https://github.com/Yohlo/protondb-library-badges
+[submodule "plugins/instant-gaming-price"]
+	path = plugins/instant-gaming-price
+	url = https://github.com/Darkdragon14/instant-gaming-price-millennium.git
