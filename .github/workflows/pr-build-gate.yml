@@ -5,11 +5,19 @@ on:
     workflows: ["Test Build"]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to close"
+        required: true
+        type: number
 
 jobs:
   handle-failed-build:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure')
     permissions:
       pull-requests: write
     steps:
@@ -19,13 +27,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           SHA: ${{ github.event.workflow_run.head_sha }}
+          INPUT_PR: ${{ github.event.inputs.pr_number }}
         run: |
           set -euo pipefail
 
-          number=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '.[0].number // empty')
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            number="$INPUT_PR"
+          else
+            number=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '.[0].number // empty')
+          fi
 
           if [[ -z "$number" ]]; then
-            echo "Could not resolve a pull request for commit $SHA" >&2
+            echo "Could not resolve a pull request number" >&2
             exit 1
           fi
 
@@ -47,5 +60,9 @@ jobs:
             exit 0
           fi
 
-          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "This pull request was automatically closed because the plugin failed to build. See the [build log]($RUN_URL) for details. Fix the issue and reopen this pull request to retry the build."
+          if [[ -z "$RUN_URL" ]]; then
+            RUN_URL="https://github.com/$REPO/pull/$PR_NUMBER/checks"
+          fi
+
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body "This pull request was closed because the plugin failed to build. See the [build log]($RUN_URL) for details. Fix the issue and reopen this pull request to retry the build."
           gh pr close "$PR_NUMBER" --repo "$REPO"
